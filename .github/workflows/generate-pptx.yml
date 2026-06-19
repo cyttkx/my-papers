@@ -9,7 +9,7 @@ jobs:
       - name: Checkout (with credentials)
         uses: actions/checkout@v4
         with:
-          persist-credentials: true   # 允许后续 git push 使用 GITHUB_TOKEN
+          persist-credentials: true
           fetch-depth: 0
 
       - name: Install pandoc
@@ -21,13 +21,21 @@ jobs:
         run: |
           pandoc "presentations/抖音直播互动与购买意愿研究.md" -o "presentations/抖音直播互动与购买意愿研究.pptx"
 
-      - name: Create branch for generated PPTX
+      - name: Upload PPTX artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-pptx
+          path: presentations/抖音直播互动与购买意愿研究.pptx
+
+      - name: Create unique branch
         run: |
+          BRANCH=generate-pptx-$(date +%s)
+          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b generate-pptx-from-md
+          git checkout -b "$BRANCH"
 
-      - name: Add and commit generated PPTX
+      - name: Commit generated PPTX
         uses: EndBug/add-and-commit@v9
         with:
           author_name: GitHub Actions
@@ -41,7 +49,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "Generate PPTX from markdown"
-          title: "Generate PPTX from markdown"
+          title: "Add generated PPTX"
           body: "This PR adds the generated PPTX from the markdown slides."
           base: main
-          branch: generate-pptx-from-md
+          branch: ${{ env.BRANCH }}
