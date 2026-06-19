@@ -1,0 +1,27 @@
+name: Generate PPTX from Markdown
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pandoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+
+      - name: Generate PPTX
+        run: |
+          pandoc "presentations/抖音直播互动与购买意愿研究.md" -o "presentations/抖音直播互动与购买意愿研究.pptx"
+
+      - name: Commit generated PPTX
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: GitHub Actions
+          author_email: actions@github.com
+          message: "Generate PPTX from markdown"
+          add: "presentations/抖音直播互动与购买意愿研究.pptx"
