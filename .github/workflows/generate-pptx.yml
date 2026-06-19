@@ -1,4 +1,4 @@
-name: Generate PPTX and Open PR (debug)
+name: Test generate PPTX artifact
 on:
   workflow_dispatch:
 
@@ -6,52 +6,32 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout (with credentials)
+      - name: "Checkout (with credentials)"
         uses: actions/checkout@v4
-        with:
-          persist-credentials: true
-          fetch-depth: 0
 
-      - name: Install pandoc
+      - name: "Install pandoc"
         run: |
           sudo apt-get update
           sudo apt-get install -y pandoc
 
-      - name: Generate PPTX
+      - name: "Generate PPTX (test)"
         run: |
           set -e
+          echo "pwd: $(pwd)"
+          echo "ls before:"
+          ls -la presentations || true
           pandoc "presentations/抖音直播互动与购买意愿研究.md" -o "presentations/抖音直播互动与购买意愿研究.pptx"
           echo "pandoc exit $?"
 
-      - name: "Debug: show presentations dir"
+      - name: "Show presentations dir (test)"
         run: |
           echo "=== ls -la presentations ==="
           ls -la presentations || true
           echo "=== file details ==="
           for f in presentations/*; do echo "---- $f ----"; file "$f" || true; ls -lh "$f" || true; done || true
 
-      - name: Upload PPTX artifact
+      - name: "Upload PPTX artifact (test)"
         uses: actions/upload-artifact@v4
         with:
           name: generated-pptx
           path: presentations/抖音直播互动与购买意愿研究.pptx
-
-      - name: Create unique branch and commit (best-effort)
-        run: |
-          BRANCH=generate-pptx-$(date +%s)
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$BRANCH" || true
-          git add presentations/抖音直播互动与购买意愿研究.pptx || true
-          git commit -m "Generate PPTX from markdown" || true
-          git push --set-upstream origin "$BRANCH" || true
-
-      - name: Create Pull Request (optional)
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "Generate PPTX from markdown"
-          title: "Add generated PPTX (debug)"
-          body: "This PR adds the generated PPTX from the markdown slides."
-          base: main
-          branch: ${{ env.BRANCH || 'generate-pptx-debug' }}
