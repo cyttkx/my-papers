@@ -1,4 +1,4 @@
-name: Generate PPTX from Markdown
+name: Generate PPTX and Open PR
 on:
   workflow_dispatch:
 
@@ -6,8 +6,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout (with credentials)
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true   # 允许后续 git push 使用 GITHUB_TOKEN
+          fetch-depth: 0
 
       - name: Install pandoc
         run: |
@@ -18,10 +21,27 @@ jobs:
         run: |
           pandoc "presentations/抖音直播互动与购买意愿研究.md" -o "presentations/抖音直播互动与购买意愿研究.pptx"
 
-      - name: Commit generated PPTX
+      - name: Create branch for generated PPTX
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b generate-pptx-from-md
+
+      - name: Add and commit generated PPTX
         uses: EndBug/add-and-commit@v9
         with:
           author_name: GitHub Actions
           author_email: actions@github.com
           message: "Generate PPTX from markdown"
           add: "presentations/抖音直播互动与购买意愿研究.pptx"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Generate PPTX from markdown"
+          title: "Generate PPTX from markdown"
+          body: "This PR adds the generated PPTX from the markdown slides."
+          base: main
+          branch: generate-pptx-from-md
