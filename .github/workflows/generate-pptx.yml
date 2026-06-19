@@ -23,7 +23,7 @@ jobs:
           pandoc "presentations/抖音直播互动与购买意愿研究.md" -o "presentations/抖音直播互动与购买意愿研究.pptx"
           echo "pandoc exit $?"
 
-      - name: Debug: show presentations dir
+      - name: "Debug: show presentations dir"
         run: |
           echo "=== ls -la presentations ==="
           ls -la presentations || true
